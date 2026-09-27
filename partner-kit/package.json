@@ -1,0 +1,10 @@
+{
+  "name": "@restake/batch-verifier-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "verify.ts",
+  "scripts": { "typecheck": "tsc --noEmit --strict --module esnext --moduleResolution bundler --target es2022 verify.ts" },
+  "peerDependencies": { "viem": "^2.0.0" },
+  "devDependencies": { "typescript": "^5.6.0", "viem": "^2.21.0" }
+}

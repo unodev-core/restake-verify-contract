@@ -1,0 +1,36 @@
+{
+  "_comment": "BNB Smart Chain. Empty lists and TODOs are filled during Discovery (plan §9).",
+  "config": {
+    "feeToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+    "maxFeeBps": 50,
+    "maxBridgeFeeBps": 50,
+    "maxBatchTtl": 600,
+    "flatFee": 110000000000000000,
+    "maxFeePerGas": 3000000000,
+    "maxTotalGas": 3000000
+  },
+  "allowlist": {
+    "paymasters": [],
+    "vaults4626": [],
+    "aavePools": ["0x6807dc923806fE8Fd134338EABCA509979a7e0cB"],
+    "assets": ["0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"],
+    "ondoTokens": [],
+    "oneInchRouters": ["0x111111125421cA6dc452d289314280a0f8842A65"],
+    "uniswapV2Pools": [],
+    "uniswapV3Pools": [],
+    "feeRecipients": []
+  },
+  "across": {
+    "spokePool": "0x4e8E101924eDE233C13e2D8622DC8aED2872d505",
+    "maxFillWindow": 14400,
+    "maxQuoteAge": 300,
+    "integratorSuffix": "0x1dc0de035f",
+    "route": {
+      "inputToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "dstChainId": 8453,
+      "outputToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "inputDecimals": 18,
+      "outputDecimals": 6
+    }
+  }
+}

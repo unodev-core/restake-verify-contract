@@ -1,0 +1,36 @@
+{
+  "_comment": "Base mainnet. Empty lists and TODOs are filled during Discovery (plan §9).",
+  "config": {
+    "feeToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "maxFeeBps": 50,
+    "maxBridgeFeeBps": 50,
+    "maxBatchTtl": 600,
+    "flatFee": 110000,
+    "maxFeePerGas": 1000000000,
+    "maxTotalGas": 3000000
+  },
+  "allowlist": {
+    "paymasters": [],
+    "vaults4626": [],
+    "aavePools": ["0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"],
+    "assets": ["0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"],
+    "ondoTokens": [],
+    "oneInchRouters": ["0x111111125421cA6dc452d289314280a0f8842A65"],
+    "uniswapV2Pools": [],
+    "uniswapV3Pools": [],
+    "feeRecipients": []
+  },
+  "across": {
+    "spokePool": "0x09aea4b2242abC8bb4BB78D537A67a245A7bEC64",
+    "maxFillWindow": 14400,
+    "maxQuoteAge": 300,
+    "integratorSuffix": "0x1dc0de035f",
+    "route": {
+      "inputToken": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "dstChainId": 56,
+      "outputToken": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+      "inputDecimals": 6,
+      "outputDecimals": 18
+    }
+  }
+}

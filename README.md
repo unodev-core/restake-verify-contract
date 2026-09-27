@@ -6,7 +6,7 @@ It answers one question:
 
 > *Does this exact user operation do only what the user asked for, touch only allowlisted contracts, and is this the hash I am about to sign?*
 
-> **Status:** design stage. The full specification is in [docs/restake-batch-verifier.md](docs/restake-batch-verifier.md). Contracts, tests and deploy scripts are not written yet (see [Roadmap](#roadmap)).
+> **Status:** v1 contracts, tests, deploy scripts and partner kit implemented (roadmap steps 2–8). Discovery (real API payload fixtures, paymaster / pool / fee-recipient addresses) and the audit are still open. The full specification is in [docs/restake-batch-verifier.md](docs/restake-batch-verifier.md).
 
 ---
 
@@ -221,6 +221,42 @@ Anything that loosens the rules waits 48 h and emits `AdditionScheduled`, so par
 ## Tooling
 
 Foundry · Solidity `0.8.28` · OpenZeppelin Contracts Upgradeable v5 · `openzeppelin-foundry-upgrades` · Slither · fork tests on Base and BSC against the real EntryPoint v0.7 and Modular Account v2.
+
+## Development
+
+```bash
+curl -L https://foundry.paradigm.xyz | bash && foundryup
+git submodule update --init --recursive
+forge build --sizes
+forge test                                  # unit + fuzz (fork tests skip)
+BASE_RPC_URL=https://mainnet.base.org forge test --match-path "test/fork/*"
+FOUNDRY_PROFILE=ci forge test               # 5000 fuzz runs
+```
+
+| Path | Contents |
+|------|----------|
+| [src/BatchVerifier.sol](src/BatchVerifier.sol) | `verify` / `check`, envelope and deadline checks, action dispatch |
+| [src/AllowlistRegistry.sol](src/AllowlistRegistry.sol) | Per-chain allowlist, 48 h scheduled adds, instant removes / cancel / pause, UUPS + ERC-7201 |
+| [src/DeadlineGuard.sol](src/DeadlineGuard.sol) | `requireBefore(deadline)`, immutable |
+| [src/libraries/](src/libraries/) | `AccountCallDecoder`, `BatchLayout`, `AllowanceRules`, `FeeRules`, `Erc4626Rules`, `AaveRules`, `SwapRules` → `OneInchRules`, `BridgeRules` → `AcrossRules` |
+| [src/types/Errors.sol](src/types/Errors.sol) | `Rejected(Reason, callIndex)` and the `Reason` codes returned by `check` |
+| [script/Deploy.s.sol](script/Deploy.s.sol) | Guard (CREATE2), 48 h `TimelockController`, both proxies with OZ upgrade-safety validation |
+| [script/Seed.s.sol](script/Seed.s.sol), [script/config/](script/config/) | Initial `schedule*` calls per chain (printed for the manager Safe) |
+| [partner-kit/verify.ts](partner-kit/verify.ts) | viem flow for §6, `0xff00` signature, fee formula for `intent.maxFee` |
+
+Deploy (per chain): `PROPOSER_SAFE=… MANAGER_SAFE=… GUARDIAN_SAFE=… forge script script/Deploy.s.sol --rpc-url base --broadcast --verify`, then `REGISTRY=… forge script script/Seed.s.sol --rpc-url base` and, 48 h later, `registry.execute(id)` for each scheduled id.
+
+### Implementation choices where the plan left room
+
+- **Errors:** one `Rejected(Reason reason, uint256 callIndex)` error instead of one custom error per rule, so `check` can return `(ok, errorCode, callIndex)` directly. The plan's `SelfCallForbidden()`, `ResidualAllowance()` and `UnsupportedAsset()` are `Reason.SELF_CALL_FORBIDDEN`, `RESIDUAL_ALLOWANCE` and `UNSUPPORTED_ASSET`.
+- **Existing delegation:** if the EOA already has code, it must be the MAv2 designator, even when a new MAv2 authorization is supplied. Users delegated to another 7702 wallet are refused (if their authorization did not apply, the old delegate would run the op).
+- **Canonical calldata:** every decoder re-encodes what it decoded and requires a byte-exact match, which rejects trailing bytes, dirty padding and odd offsets. The only tolerated extra is the bridge row's `integratorSuffix`.
+- **ERC-4626 `withdraw`:** accepted when `previewWithdraw(assets) <= intent.amount` (shares); `redeem` must equal it. **Aave `withdraw(max)`** is rejected (unbounded notional for the fee cap).
+- **Trades and bridges** require `intent.payToken == feeToken` (v1: every notional in USDC). 1inch `swap` requires `flags == 0`: no partial fill, no extra ETH, no Permit2.
+- **Gas caps** (no paymaster): `maxFeePerGas` and `maxTotalGas = verificationGasLimit + callGasLimit + preVerificationGas`.
+- **Registry:** removing a bridge also drops its routes; `unpause` is `MANAGER` (instant); the initial config is set in `initialize`, while every allowlist entry goes through the 48 h schedule.
+
+Open before mainnet: Discovery payloads in [test/fixtures/](test/fixtures/), paymaster / vault / pool / Ondo token / fee-recipient addresses in [script/config/](script/config/), `maxFillWindow` from live Across quotes (placeholder 4 h, below the SpokePools' 6 h `fillDeadlineBuffer`), gas caps, and the external audit.
 
 ## Documentation
 
