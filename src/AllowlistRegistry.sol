@@ -170,17 +170,20 @@ contract AllowlistRegistry is
         if (op.eta == 0) revert UnknownOp();
         if (block.timestamp < op.eta) revert NotReady(op.eta);
         delete s.pending[id];
+        // slither-disable-next-line unused-return (idempotent set update)
         s.pendingIds.remove(id);
 
         if (op.kind == OpKind.ADD_ADDRESS) {
             (Category cat, address addr, uint8 subtype) = abi.decode(op.payload, (Category, address, uint8));
             _validateAdd(cat, addr, subtype);
+            // slither-disable-next-line unused-return (idempotent set update)
             s.allowed[cat].add(addr);
             if (cat == Category.SWAP_ROUTER) s.routerType[addr] = RouterType(subtype);
             if (cat == Category.SWAP_POOL) s.poolType[addr] = PoolType(subtype);
             emit Added(cat, addr, subtype);
         } else if (op.kind == OpKind.SET_BRIDGE) {
             (address bridge, BridgeConfig memory cfg) = abi.decode(op.payload, (address, BridgeConfig));
+            // slither-disable-next-line unused-return (idempotent set update)
             s.allowed[Category.BRIDGE].add(bridge);
             s.bridgeConfig[bridge] = cfg;
             emit BridgeConfigSet(bridge);
@@ -189,6 +192,7 @@ contract AllowlistRegistry is
                 abi.decode(op.payload, (address, address, uint256, BridgeRoute));
             bytes32 key = routeKey(bridge, inputToken, dstChainId);
             s.routes[key] = RouteEntry(bridge, inputToken, dstChainId, route);
+            // slither-disable-next-line unused-return (idempotent set update)
             s.routeKeys.add(key);
             emit RouteSet(key, bridge, inputToken, dstChainId);
         } else {
@@ -205,6 +209,7 @@ contract AllowlistRegistry is
         RegistryStorage storage s = _s();
         if (s.pending[id].eta == 0) revert UnknownOp();
         delete s.pending[id];
+        // slither-disable-next-line unused-return (idempotent set update)
         s.pendingIds.remove(id);
         emit ChangeCancelled(id);
     }
@@ -312,12 +317,14 @@ contract AllowlistRegistry is
         id = keccak256(abi.encode(kind, payload, s.opNonce++));
         uint64 eta = uint64(block.timestamp + DELAY);
         s.pending[id] = PendingOp(kind, eta, payload);
+        // slither-disable-next-line unused-return (idempotent set update)
         s.pendingIds.add(id);
         emit ChangeScheduled(id, kind, eta, payload);
     }
 
     function _removeRoute(RegistryStorage storage s, bytes32 key) private {
         delete s.routes[key];
+        // slither-disable-next-line unused-return (idempotent set update)
         s.routeKeys.remove(key);
         emit RouteRemoved(key);
     }

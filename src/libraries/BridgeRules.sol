@@ -19,8 +19,9 @@ library BridgeRules {
     {
         if (!registry.isAllowed(Category.BRIDGE, c.target)) reject(Reason.TARGET_NOT_ALLOWED, idx);
         BridgeConfig memory bc = registry.bridgeConfig(c.target);
-        if (!_selectorEnabled(bc, CallLib.selector(c.data))) reject(Reason.BAD_SELECTOR, idx);
+        if (!_selectorEnabled(bc, CallLib.selectorOf(c.data))) reject(Reason.BAD_SELECTOR, idx);
 
+        // slither-disable-next-line uninitialized-local (every other branch rejects)
         BridgeDeposit memory d;
         if (bc.bridgeType == BridgeType.ACROSS) d = AcrossRules.decode(c.data, idx, bc);
         else reject(Reason.TARGET_NOT_ALLOWED, idx);

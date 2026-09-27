@@ -20,6 +20,7 @@ library SwapRules {
         if (intent.payToken != cfg.feeToken) reject(Reason.UNSUPPORTED_ASSET, idx);
         if (!registry.isAllowed(Category.SWAP_ROUTER, c.target)) reject(Reason.TARGET_NOT_ALLOWED, idx);
 
+        // slither-disable-next-line uninitialized-local (every other branch rejects)
         SwapData memory s;
         RouterType rt = registry.routerType(c.target);
         if (rt == RouterType.ONE_INCH_V6) s = OneInchRules.decode(c, idx, intent.user, registry);

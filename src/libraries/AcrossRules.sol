@@ -26,7 +26,8 @@ library AcrossRules {
             body = CallLib.slice(data, 0, data.length - cfg.integratorSuffix.length);
         }
 
-        bytes4 sel = CallLib.selector(body);
+        bytes4 sel = CallLib.selectorOf(body);
+        // slither-disable-next-line uninitialized-local (false is the intended default)
         bool legacy;
         if (sel == IAcrossSpokePool.depositV3.selector) legacy = true;
         else if (sel != IAcrossSpokePool.deposit.selector) reject(Reason.BAD_SELECTOR, idx);
@@ -43,9 +44,12 @@ library AcrossRules {
         d.recipient = bytes32(CallLib.word(body, 1));
         d.outputToken = bytes32(CallLib.word(body, 3));
         if (legacy) {
+            // Validation only: cleanAddress rejects dirty upper bits.
+            // slither-disable-start unused-return
             CallLib.cleanAddress(uint256(d.recipient), idx);
             CallLib.cleanAddress(uint256(d.outputToken), idx);
             CallLib.cleanAddress(CallLib.word(body, 7), idx); // exclusiveRelayer
+            // slither-disable-end unused-return
         }
         d.inputAmount = CallLib.word(body, 4);
         d.outputAmount = CallLib.word(body, 5);

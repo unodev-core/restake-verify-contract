@@ -67,6 +67,6 @@ library BatchLayout {
     }
 
     function _is(Call memory c, bytes4 sel) private pure returns (bool) {
-        return CallLib.selector(c.data) == sel;
+        return CallLib.selectorOf(c.data) == sel;
     }
 }

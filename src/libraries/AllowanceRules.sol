@@ -36,6 +36,7 @@ library AllowanceRules {
         // No approve and no revoke: whatever the user already allowed must be used up exactly. The token is
         // allowlisted (or the configured fee token), so this live read goes to a trusted contract.
         uint256 current = IERC20(m.token).allowance(user, m.spender);
+        // slither-disable-next-line uninitialized-local (zero is the intended default)
         uint256 residual;
         if (current == type(uint256).max) residual = current; // tokens may not decrement an infinite allowance
         else if (current > m.pulled) residual = current - m.pulled;

@@ -101,6 +101,7 @@ contract BatchVerifier is Initializable, AccessControlUpgradeable, UUPSUpgradeab
         Authorization calldata auth,
         Intent calldata intent
     ) external view returns (bool ok, uint8 errorCode, uint256 callIndex) {
+        // slither-disable-next-line unused-return (only success or the revert reason matters)
         try this.verify(op, userOpHash, auth, intent) {
             return (true, uint8(Reason.NONE), NO_INDEX);
         } catch (bytes memory err) {
@@ -161,7 +162,7 @@ contract BatchVerifier is Initializable, AccessControlUpgradeable, UUPSUpgradeab
     function _checkDeadline(Call[] memory calls, Config memory cfg) private view returns (uint256 d) {
         if (
             calls.length == 0 || calls[0].target != DEADLINE_GUARD
-                || CallLib.selector(calls[0].data) != DeadlineGuard.requireBefore.selector
+                || CallLib.selectorOf(calls[0].data) != DeadlineGuard.requireBefore.selector
         ) reject(Reason.MISSING_DEADLINE, 0);
         if (calls[0].data.length != 36) reject(Reason.MALFORMED_CALL, 0);
         d = CallLib.word(calls[0].data, 0);

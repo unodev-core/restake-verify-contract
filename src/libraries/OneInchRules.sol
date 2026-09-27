@@ -42,7 +42,7 @@ library OneInchRules {
         view
         returns (SwapData memory s)
     {
-        bytes4 sel = CallLib.selector(c.data);
+        bytes4 sel = CallLib.selectorOf(c.data);
         if (sel == IAggregationRouterV6.swap.selector) return _swap(c.data, idx);
 
         (uint256 hops, bool hasTo) = _unoswapShape(sel);
@@ -88,7 +88,9 @@ library OneInchRules {
         returns (address out)
     {
         uint256 protocol = dex >> PROTOCOL_OFFSET;
+        // slither-disable-next-line uninitialized-local (every other branch rejects)
         PoolType expected;
+        // slither-disable-next-line uninitialized-local (every other branch rejects)
         uint256 allowedBits;
         if (protocol == PROTOCOL_UNISWAP_V2) {
             expected = PoolType.UNISWAP_V2;

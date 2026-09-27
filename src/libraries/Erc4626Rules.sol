@@ -17,7 +17,7 @@ library Erc4626Rules {
         view
         returns (MainResult memory m)
     {
-        if (CallLib.selector(c.data) != IERC4626.deposit.selector) reject(Reason.BAD_SELECTOR, idx);
+        if (CallLib.selectorOf(c.data) != IERC4626.deposit.selector) reject(Reason.BAD_SELECTOR, idx);
         (uint256 assets, address receiver) = abi.decode(CallLib.args(c.data, 64, idx), (uint256, address));
         CallLib.requireCanonical(c.data, abi.encodeCall(IERC4626.deposit, (assets, receiver)), idx);
         if (receiver != user) reject(Reason.BAD_RECEIVER, idx);
@@ -34,7 +34,7 @@ library Erc4626Rules {
         view
         returns (MainResult memory m)
     {
-        bytes4 sel = CallLib.selector(c.data);
+        bytes4 sel = CallLib.selectorOf(c.data);
         if (sel != IERC4626.redeem.selector && sel != IERC4626.withdraw.selector) reject(Reason.BAD_SELECTOR, idx);
         (uint256 value, address receiver, address owner) =
             abi.decode(CallLib.args(c.data, 96, idx), (uint256, address, address));

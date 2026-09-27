@@ -16,7 +16,7 @@ library AaveRules {
         pure
         returns (MainResult memory m)
     {
-        if (CallLib.selector(c.data) != IAaveV3Pool.supply.selector) reject(Reason.BAD_SELECTOR, idx);
+        if (CallLib.selectorOf(c.data) != IAaveV3Pool.supply.selector) reject(Reason.BAD_SELECTOR, idx);
         (address asset, uint256 value, address onBehalfOf, uint16 referral) =
             abi.decode(CallLib.args(c.data, 128, idx), (address, uint256, address, uint16));
         CallLib.requireCanonical(c.data, abi.encodeCall(IAaveV3Pool.supply, (asset, value, onBehalfOf, referral)), idx);
@@ -35,7 +35,7 @@ library AaveRules {
         pure
         returns (MainResult memory m)
     {
-        if (CallLib.selector(c.data) != IAaveV3Pool.withdraw.selector) reject(Reason.BAD_SELECTOR, idx);
+        if (CallLib.selectorOf(c.data) != IAaveV3Pool.withdraw.selector) reject(Reason.BAD_SELECTOR, idx);
         (address asset, uint256 value, address to) =
             abi.decode(CallLib.args(c.data, 96, idx), (address, uint256, address));
         CallLib.requireCanonical(c.data, abi.encodeCall(IAaveV3Pool.withdraw, (asset, value, to)), idx);

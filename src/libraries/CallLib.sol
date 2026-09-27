@@ -7,7 +7,7 @@ import {Reason, reject} from "../types/Errors.sol";
 library CallLib {
     uint256 internal constant ADDRESS_MASK = type(uint160).max;
 
-    function selector(bytes memory data) internal pure returns (bytes4) {
+    function selectorOf(bytes memory data) internal pure returns (bytes4) {
         if (data.length < 4) return bytes4(0);
         return bytes4(data);
     }
