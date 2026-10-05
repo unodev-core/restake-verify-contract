@@ -241,10 +241,27 @@ FOUNDRY_PROFILE=ci forge test               # 5000 fuzz runs
 | [src/libraries/](src/libraries/) | `AccountCallDecoder`, `BatchLayout`, `AllowanceRules`, `FeeRules`, `Erc4626Rules`, `AaveRules`, `SwapRules` → `OneInchRules`, `BridgeRules` → `AcrossRules` |
 | [src/types/Errors.sol](src/types/Errors.sol) | `Rejected(Reason, callIndex)` and the `Reason` codes returned by `check` |
 | [script/Deploy.s.sol](script/Deploy.s.sol) | Guard (CREATE2), 48 h `TimelockController`, both proxies with OZ upgrade-safety validation |
+| [script/DeployDeadlineGuard.s.sol](script/DeployDeadlineGuard.s.sol), [script/utils/DeadlineGuardCreate2.sol](script/utils/DeadlineGuardCreate2.sol) | Guard only, at its cross-chain CREATE2 address |
 | [script/Seed.s.sol](script/Seed.s.sol), [script/config/](script/config/) | Initial `schedule*` calls per chain (printed for the manager Safe) |
 | [partner-kit/verify.ts](partner-kit/verify.ts) | viem flow for §6, `0xff00` signature, fee formula for `intent.maxFee` |
 
 Deploy (per chain): `PROPOSER_SAFE=… MANAGER_SAFE=… GUARDIAN_SAFE=… forge script script/Deploy.s.sol --rpc-url base --broadcast --verify`, then `REGISTRY=… forge script script/Seed.s.sol --rpc-url base` and, 48 h later, `registry.execute(id)` for each scheduled id.
+
+### DeadlineGuard address
+
+`DeadlineGuard` has the same address on every chain:
+
+```
+0x4d707032A01Ec803b39cf984d04e24F06185B7f2
+```
+
+It is deployed with CREATE2 through the canonical deterministic deployer `0x4e59b44847b379578588920cA78FbF26c0B4956C` with salt `keccak256("restake.DeadlineGuard.v1")`, so the address does not depend on the deploying wallet. It does depend on the exact bytecode: changing `DeadlineGuard.sol` or the compiler settings in [foundry.toml](foundry.toml) changes the address. Check with `forge script script/DeployDeadlineGuard.s.sol --sig "predict()"` before deploying, then:
+
+```bash
+forge script script/DeployDeadlineGuard.s.sol --rpc-url base --broadcast --verify --account <keystore>
+```
+
+Re-running on a chain where the guard already exists does nothing. `Deploy.s.sol` uses the same helper and reuses an existing guard.
 
 ### Implementation choices where the plan left room
 

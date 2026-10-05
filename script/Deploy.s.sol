@@ -10,6 +10,7 @@ import {BatchVerifier} from "../src/BatchVerifier.sol";
 import {DeadlineGuard} from "../src/DeadlineGuard.sol";
 import {IAllowlistRegistry} from "../src/interfaces/IAllowlistRegistry.sol";
 import {Config} from "../src/types/Types.sol";
+import {DeadlineGuardCreate2} from "./utils/DeadlineGuardCreate2.sol";
 
 /// @notice Deploys one chain's stack (§5): DeadlineGuard (CREATE2, same address on every chain), a 48 h
 ///         TimelockController, and the AllowlistRegistry and BatchVerifier UUPS proxies, validated for upgrade safety.
@@ -19,7 +20,6 @@ import {Config} from "../src/types/Types.sol";
 ///
 ///   forge script script/Deploy.s.sol --rpc-url base --broadcast --verify
 contract Deploy is Script {
-    bytes32 internal constant GUARD_SALT = keccak256("restake.DeadlineGuard.v1");
     uint256 internal constant TIMELOCK_DELAY = 48 hours;
 
     struct Deployment {
@@ -36,7 +36,7 @@ contract Deploy is Script {
         Config memory cfg = loadConfig();
 
         vm.startBroadcast();
-        d.guard = _guard();
+        d.guard = DeadlineGuardCreate2.deploy();
 
         address[] memory proposers = new address[](1);
         proposers[0] = proposer;
@@ -83,12 +83,5 @@ contract Deploy is Script {
             maxFeePerGas: uint128(vm.parseJsonUint(json, ".config.maxFeePerGas")),
             maxTotalGas: uint128(vm.parseJsonUint(json, ".config.maxTotalGas"))
         });
-    }
-
-    /// @dev CREATE2 through the canonical deployer, so the backend uses one guard address on every chain.
-    function _guard() internal returns (DeadlineGuard guard) {
-        address predicted = vm.computeCreate2Address(GUARD_SALT, keccak256(type(DeadlineGuard).creationCode));
-        if (predicted.code.length != 0) return DeadlineGuard(predicted);
-        guard = new DeadlineGuard{salt: GUARD_SALT}();
     }
 }
